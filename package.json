@@ -1,0 +1,26 @@
+{
+  "name": "nice-pipe",
+  "version": "0.0.0",
+  "license": "ISC",
+  "description": "Nicer Node.js pipes",
+  "keywords": [
+    "nice",
+    "pipe",
+    "stream"
+  ],
+  "homepage": "https://github.com/julien-f/nodejs-nice-pipe",
+  "bugs": "https://github.com/julien-f/nodejs-nice-pipe/issues",
+  "author": "Julien Fontanet <julien.fontanet@isonoe.net>",
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "^1.9.1",
+    "mocha": "^1.21.4",
+    "through2": "^0.6.2"
+  },
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "test": "mocha index.spec.js"
+  }
+}
