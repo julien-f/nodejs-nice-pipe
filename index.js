@@ -12,25 +12,28 @@ function forEach(array, iterator) {
   }
 }
 
+var isArray = Array.isArray || (function (toS) {
+  var tag = toS.call([]);
+  return function isArray(obj) {
+    return toS.call(obj) === tag;
+  };
+})(Object.prototype.toString);
+
 //====================================================================
 
 // TODO: implements unpipe on error fix.
 
 // TODO: implements write in pipeline.
 
-function nicePipe(opts, streams) {
-  if (arguments.length === 1) {
-    streams = opts;
-    opts = {};
-  } else {
-    opts = {};
-  }
-
-  var current;
-
+function nicePipeCore(streams, current) {
   forEach(streams, function (stream) {
     // Ignore all falsy values (undefined, null, etc.).
     if (!stream) {
+      return;
+    }
+
+    if (isArray(stream)) {
+      nicePipeCore(stream, current);
       return;
     }
 
@@ -46,5 +49,9 @@ function nicePipe(opts, streams) {
   });
 
   return current;
+}
+
+function nicePipe(streams) {
+  return nicePipeCore(streams);
 }
 exports = module.exports = nicePipe;

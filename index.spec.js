@@ -117,3 +117,34 @@ it('forwards errors down', function (done) {
 
   stream1.emit('error', error);
 });
+
+it('handles nested arrays', function (done) {
+  var first = makeSpyStream();
+  var last = makeSpyStream();
+
+  var pipeline = [
+    first,
+    [
+      makeSpyStream(),
+    ],
+    [
+      [
+        makeSpyStream(),
+        makeSpyStream(),
+      ]
+    ],
+    [
+      last,
+    ]
+  ];
+  nicePipe(pipeline);
+
+  var value = {};
+  first.write(value);
+
+  last.pipe(through.obj(function (chunk) {
+    expect(chunk).to.equal(value);
+
+    done();
+  }));
+});
