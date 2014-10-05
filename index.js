@@ -33,7 +33,7 @@ function nicePipeCore(streams, current) {
     }
 
     if (isArray(stream)) {
-      nicePipeCore(stream, current);
+      current = nicePipeCore(stream, current);
       return;
     }
 

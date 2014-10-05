@@ -38,7 +38,7 @@ it('sets up a pipeline', function (done) {
     stream2,
     stream3,
   ];
-  nicePipe(pipeline);
+  expect(nicePipe(pipeline)).to.equal(stream3);
 
   var value = {};
   stream1.write(value);
@@ -72,7 +72,7 @@ it('ignores falsy values', function (done) {
     stream2,
     false,
   ];
-  nicePipe(pipeline);
+  expect(nicePipe(pipeline)).to.equal(stream2);
 
   var value = {};
   stream1.write(value);
@@ -106,7 +106,7 @@ it('forwards errors down', function (done) {
     stream1,
     stream2,
   ];
-  nicePipe(pipeline);
+  expect(nicePipe(pipeline)).to.equal(stream2);
 
   var error = {};
 
@@ -137,7 +137,7 @@ it('handles nested arrays', function (done) {
       last,
     ]
   ];
-  nicePipe(pipeline);
+  expect(nicePipe(pipeline)).to.equal(last);
 
   var value = {};
   first.write(value);
