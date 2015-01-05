@@ -33,27 +33,27 @@ it('sets up a pipeline', function (done) {
   var stream2 = makeSpyStream();
   var stream3 = makeSpyStream();
 
-  var pipeline = [
+  var streams = [
     stream1,
     stream2,
     stream3,
   ];
-  expect(nicePipe(pipeline)).to.equal(stream3);
+  var pipeline = nicePipe(streams);
 
   var value = {};
-  stream1.write(value);
+  pipeline.write(value);
 
   // Pipe last stream to a test stream.
-  stream3.pipe(through.obj(function () {
+  pipeline.pipe(through.obj(function () {
     // Test pipeline.
-    pipeline.forEach(function (stream) {
+    streams.forEach(function (stream) {
       expect(stream.chunks).to.have.members([value]);
     });
 
-    stream1.end();
+    pipeline.end();
   }));
-  stream3.on('end', function () {
-    pipeline.forEach(function (stream) {
+  pipeline.on('end', function () {
+    streams.forEach(function (stream) {
       expect(stream.flushed).to.be.true;
     });
 
@@ -61,7 +61,7 @@ it('sets up a pipeline', function (done) {
   });
 });
 
-it('ignores falsy values', function (done) {
+it.skip('ignores falsy values', function (done) {
   var stream1 = makeSpyStream();
   var stream2 = makeSpyStream();
 
@@ -72,7 +72,7 @@ it('ignores falsy values', function (done) {
     stream2,
     false,
   ];
-  expect(nicePipe(pipeline)).to.equal(stream2);
+  nicePipe(pipeline);
 
   var value = {};
   stream1.write(value);
@@ -98,19 +98,18 @@ it('ignores falsy values', function (done) {
   });
 });
 
-it('forwards errors down', function (done) {
+it.skip('forwards errors', function (done) {
   var stream1 = makeSpyStream();
   var stream2 = makeSpyStream();
 
-  var pipeline = [
+  var pipeline = nicePipe([
     stream1,
     stream2,
-  ];
-  expect(nicePipe(pipeline)).to.equal(stream2);
+  ]);
 
   var error = {};
 
-  stream2.on('error', function (actual) {
+  pipeline.on('error', function (actual) {
     expect(actual).to.equal(error);
     done();
   });
@@ -118,7 +117,7 @@ it('forwards errors down', function (done) {
   stream1.emit('error', error);
 });
 
-it('handles nested arrays', function (done) {
+it.skip('handles nested arrays', function (done) {
   var first = makeSpyStream();
   var last = makeSpyStream();
 
@@ -137,7 +136,23 @@ it('handles nested arrays', function (done) {
       last,
     ]
   ];
-  expect(nicePipe(pipeline)).to.equal(last);
+  nicePipe(pipeline);
+
+  var value = {};
+  first.write(value);
+
+  last.pipe(through.obj(function (chunk) {
+    expect(chunk).to.equal(value);
+
+    done();
+  }));
+});
+
+it.skip('supports flat parameters instead of an array', function (done) {
+  var first = makeSpyStream();
+  var last = makeSpyStream();
+
+  expect(nicePipe(first, last)).to.equal(last);
 
   var value = {};
   first.write(value);
