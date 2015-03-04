@@ -50,17 +50,25 @@ function proxyRead(proxy, readable) {
 }
 
 function proxyWrite(proxy, writable) {
+  proxy.end = function (chunk, encoding, callback) {
+    return writable.end(chunk, encoding, callback);
+  };
   proxy._write = function _write(chunk, encoding, callback) {
     return writable.write(chunk, encoding, callback);
   };
 
-  proxy.on('finish', function () {
-    writable.end();
-  });
-
-  writable.on('finish', function () {
-    proxy.end();
-  });
+  var emit = proxy.emit;
+  var push = [].push;
+  function proxyEvent(name) {
+    writable.on(name, function () {
+      var args = [name];
+      push.apply(args, arguments);
+      emit.apply(proxy, args);
+    });
+  }
+  proxyEvent('drain');
+  proxyEvent('error');
+  proxyEvent('finish');
 }
 
 //====================================================================
