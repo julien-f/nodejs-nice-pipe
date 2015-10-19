@@ -50,9 +50,9 @@ npm install --save nice-pipe
 ## Usage
 
 ```javascript
-var nicePipe = require('nice-pipe');
+var nicePipe = require('nice-pipe')
 
-var parse = true;
+var parse = true
 
 var pipeline = nicePipe([
   process.stdin,
@@ -60,13 +60,13 @@ var pipeline = nicePipe([
   // Falsy values are silently ignored.
   parse && require('csv2json')(),
 
-  process.stdout,
+  process.stdout
 ]);
 
 
 pipeline.on('error', function (error) {
-  console.error(error);
-});
+  console.error(error)
+})
 ```
 
 ## Contributions
