@@ -121,7 +121,7 @@ function nicePipe (streams) {
     pipeline.emit('error', error)
   }
 
-  nicePipeCore(isArray(streams) ? streams : arguments)
+  nicePipeCore(isArray(streams) ? streams : [].slice.call(arguments))
 
   // Only one stream.
   if (current === first) {
