@@ -12,8 +12,7 @@
   "bugs": "https://github.com/julien-f/nodejs-nice-pipe/issues",
   "author": "Julien Fontanet <julien.fontanet@isonoe.net>",
   "dependencies": {
-    "is-readable-stream": "1.0.0",
-    "is-writable-stream": "1.0.0"
+    "is-stream": "^1.0.1"
   },
   "devDependencies": {
     "chai": "^1.10.0",

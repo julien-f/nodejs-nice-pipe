@@ -13,8 +13,8 @@ var Duplex = stream.Duplex;
 var Readable = stream.Readable;
 var Writable = stream.Writable;
 
-var isReadable = require('is-readable-stream');
-var isWritable = require('is-writable-stream');
+var isReadable = require('is-stream').readable;
+var isWritable = require('is-stream').writable;
 
 //====================================================================
 
