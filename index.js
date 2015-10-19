@@ -2,7 +2,12 @@
 
 //====================================================================
 
-var stream = require('stream');
+var stream
+try {
+  stream = require('readable-stream');
+} catch (_) {
+  stream  = require('stream');
+}
 
 var Duplex = stream.Duplex;
 var Readable = stream.Readable;
