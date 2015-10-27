@@ -28,13 +28,12 @@ function forEach (array, iterator) {
   }
 }
 
-var toString = Object.prototype.toString
-
-var isArray = Array.isArray || (function (tag) {
+var isArray = Array.isArray || (function (toString) {
+  var tag = toString.call([])
   return function isArray (obj) {
     return toString.call(obj) === tag
   }
-})(toString.call([]))
+})(Object.prototype.toString)
 
 // -------------------------------------------------------------------
 
