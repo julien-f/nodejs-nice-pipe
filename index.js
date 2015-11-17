@@ -22,9 +22,7 @@ function forEach (array, iterator) {
   var i, n
 
   for (i = 0, n = array.length; i < n; ++i) {
-    if (iterator(array[i], i, array) === false) {
-      break
-    }
+    iterator(array[i], i, array)
   }
 }
 
@@ -37,41 +35,47 @@ var isArray = Array.isArray || (function (toString) {
 
 // -------------------------------------------------------------------
 
+function makeEventProxy (source, target) {
+  var emit = target.emit
+  var push = [].push
+
+  return function (eventName) {
+    source.on(eventName, function () {
+      var args = [ eventName ]
+      push.apply(args, arguments)
+
+      emit.apply(target, args)
+    })
+  }
+}
+
 function proxyRead (proxy, readable) {
-  function forward () {
+  proxy._read = function () {
     var data
     do {
       data = readable.read()
     } while (data !== null && proxy.push(data))
   }
 
-  proxy._read = forward
-  readable.on('readable', forward)
-
-  readable.on('end', function forwardEnd () {
+  readable.on('end', function () {
     proxy.push(null)
   })
+
+  var proxyEvent = makeEventProxy(readable, proxy)
+  proxyEvent('close')
+  proxyEvent('readable')
 }
 
 function proxyWrite (proxy, writable) {
   proxy.end = function (chunk, encoding, callback) {
     return writable.end(chunk, encoding, callback)
   }
-  proxy._write = function _write (chunk, encoding, callback) {
+  proxy._write = function (chunk, encoding, callback) {
     return writable.write(chunk, encoding, callback)
   }
 
-  var emit = proxy.emit
-  var push = [].push
-  function proxyEvent (name) {
-    writable.on(name, function () {
-      var args = [name]
-      push.apply(args, arguments)
-      emit.apply(proxy, args)
-    })
-  }
+  var proxyEvent = makeEventProxy(writable, proxy)
   proxyEvent('drain')
-  proxyEvent('error')
   proxyEvent('finish')
 }
 
@@ -116,7 +120,7 @@ function nicePipe (streams) {
 
   // Initialize state.
   current = first = undefined
-  forwardError = function forwardError (error) {
+  forwardError = function (error) {
     pipeline.emit('error', error)
   }
 
