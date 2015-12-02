@@ -96,27 +96,31 @@ var forwardError
 // 1. remove default error handler
 // 2. repipe on error.
 
-function nicePipeCore (streams) {
-  forEach(streams, function (stream) {
-    // Ignore all falsy values (undefined, null, etc.).
-    if (!stream) {
-      return
-    }
+function nicePipeSingleStream (stream) {
+  // Ignore all falsy values (undefined, null, etc.).
+  if (!stream) {
+    return
+  }
 
-    if (isArray(stream)) {
-      nicePipeCore(stream, current)
-      return
-    }
+  if (isArray(stream)) {
+    nicePipeCore(stream, current)
+    return
+  }
 
-    stream.on('error', forwardError)
+  stream.on('error', forwardError)
 
-    if (current) {
-      current = current.pipe(stream)
-    } else {
-      first = current = stream
-    }
-  })
+  if (current) {
+    current = current.pipe(stream)
+  } else {
+    first = current = stream
+  }
 }
+
+function nicePipeCore (streams) {
+  forEach(streams, nicePipeSingleStream)
+}
+
+var push = Array.prototype.push
 
 function nicePipe (streams) {
   var pipeline
@@ -127,7 +131,11 @@ function nicePipe (streams) {
     pipeline.emit('error', error)
   }
 
-  nicePipeCore(isArray(streams) ? streams : [].slice.call(arguments))
+  nicePipeCore(
+    isArray(streams)
+      ? streams
+      : (streams = [], push.apply(streams, arguments), streams)
+  )
 
   // Only one stream.
   if (current === first) {
