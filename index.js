@@ -71,10 +71,10 @@ function proxyWrite (proxy, writable) {
     return writable.write(chunk, encoding, callback)
   }
 
-  proxy.once('finish', () => {
+  proxy.once('finish', function () {
     writable.end()
   })
-  writable.once('finish', () => {
+  writable.once('finish', function () {
     proxy.end()
   })
 
