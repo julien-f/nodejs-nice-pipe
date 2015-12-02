@@ -57,7 +57,7 @@ function proxyRead (proxy, readable) {
     } while (data !== null && proxy.push(data))
   }
 
-  readable.on('end', function () {
+  readable.once('end', function () {
     proxy.push(null)
   })
 
@@ -67,16 +67,19 @@ function proxyRead (proxy, readable) {
 }
 
 function proxyWrite (proxy, writable) {
-  proxy.end = function (chunk, encoding, callback) {
-    return writable.end(chunk, encoding, callback)
-  }
   proxy._write = function (chunk, encoding, callback) {
     return writable.write(chunk, encoding, callback)
   }
 
+  proxy.once('finish', () => {
+    writable.end()
+  })
+  writable.once('finish', () => {
+    proxy.end()
+  })
+
   var proxyEvent = makeEventProxy(writable, proxy)
   proxyEvent('drain')
-  proxyEvent('finish')
 }
 
 // ===================================================================
