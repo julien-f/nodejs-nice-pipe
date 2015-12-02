@@ -18,6 +18,8 @@ var isWritable = require('is-stream').writable
 
 // ===================================================================
 
+var arrayPush = Array.prototype.push
+
 function forEach (array, iterator) {
   var i, n
 
@@ -37,12 +39,11 @@ var isArray = Array.isArray || (function (toString) {
 
 function makeEventProxy (source, target) {
   var emit = target.emit
-  var push = [].push
 
   return function (eventName) {
     source.on(eventName, function () {
       var args = [ eventName ]
-      push.apply(args, arguments)
+      arrayPush.apply(args, arguments)
 
       emit.apply(target, args)
     })
@@ -96,14 +97,14 @@ var forwardError
 // 1. remove default error handler
 // 2. repipe on error.
 
-function nicePipeSingleStream (stream) {
+function nicePipeCore (stream) {
   // Ignore all falsy values (undefined, null, etc.).
   if (!stream) {
     return
   }
 
   if (isArray(stream)) {
-    nicePipeCore(stream, current)
+    forEach(stream, nicePipeCore)
     return
   }
 
@@ -116,26 +117,14 @@ function nicePipeSingleStream (stream) {
   }
 }
 
-function nicePipeCore (streams) {
-  forEach(streams, nicePipeSingleStream)
-}
-
-var push = Array.prototype.push
-
 function nicePipe (streams) {
   var pipeline
 
-  // Initialize state.
-  current = first = undefined
   forwardError = function (error) {
     pipeline.emit('error', error)
   }
 
-  nicePipeCore(
-    isArray(streams)
-      ? streams
-      : (streams = [], push.apply(streams, arguments), streams)
-  )
+  nicePipeCore(streams)
 
   // Only one stream.
   if (current === first) {
@@ -167,4 +156,15 @@ function nicePipe (streams) {
 
   return pipeline
 }
-exports = module.exports = nicePipe
+
+module.exports = function nicePipeWrapper (streams) {
+  try {
+    return nicePipe(
+      isArray(streams)
+        ? streams
+        : (streams = [], arrayPush.apply(streams, arguments), streams)
+    )
+  } finally {
+    current = first = forwardError = undefined
+  }
+}
