@@ -9,7 +9,9 @@ var nicePipe = require('./')
 var expect = require('must')
 var isReadable = require('is-stream').readable
 var isWritable = require('is-stream').writable
+var Readable = require('stream').Readable
 var Transform = require('stream').Transform
+var Writable = require('stream').Writable
 
 // ===================================================================
 
@@ -23,6 +25,10 @@ expect.prototype.writableStream = function () {
 
 // ===================================================================
 
+function passthroughTransform (chunk, enc, next) {
+  next(null, chunk)
+}
+
 function through (transform, flush, opts) {
   if (!opts) {
     opts = {}
@@ -30,11 +36,28 @@ function through (transform, flush, opts) {
   opts.objectMode = true
 
   var stream = new Transform(opts)
-  stream._transform = transform
+  stream._transform = transform || passthroughTransform
   if (flush) {
     stream._flush = flush
   }
 
+  return stream
+}
+
+function readable () {
+  var stream = new Readable()
+  stream._read = function () {
+    this.push(null)
+  }
+
+  return stream
+}
+
+function writable () {
+  var stream = new Writable()
+  stream._write = function (chunk, enc, next) {
+    next()
+  }
   return stream
 }
 
@@ -101,3 +124,31 @@ it('forwards errors')
 it('handles nested arrays')
 
 it('supports flat parameters instead of an array')
+
+it('writable + readable', function () {
+  const pipeline = nicePipe(through(), through())
+
+  expect(pipeline).to.be.a.readableStream()
+  expect(pipeline).to.be.a.writableStream()
+})
+
+it('non writable + readable', function () {
+  const pipeline = nicePipe(readable(), through())
+
+  expect(pipeline).to.be.a.readableStream()
+  expect(pipeline).to.not.be.a.writableStream()
+})
+
+it('writable + non readable', function () {
+  const pipeline = nicePipe(through(), writable())
+
+  expect(pipeline).to.not.be.a.readableStream()
+  expect(pipeline).to.be.a.writableStream()
+})
+
+it('non writable + non readable', function () {
+  const pipeline = nicePipe(readable(), writable())
+
+  expect(pipeline).to.not.be.a.readableStream()
+  expect(pipeline).to.not.be.a.writableStream()
+})
