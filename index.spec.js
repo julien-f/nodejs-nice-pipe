@@ -126,28 +126,28 @@ it('handles nested arrays')
 it('supports flat parameters instead of an array')
 
 it('writable + readable', function () {
-  const pipeline = nicePipe(through(), through())
+  var pipeline = nicePipe(through(), through())
 
   expect(pipeline).to.be.a.readableStream()
   expect(pipeline).to.be.a.writableStream()
 })
 
 it('non writable + readable', function () {
-  const pipeline = nicePipe(readable(), through())
+  var pipeline = nicePipe(readable(), through())
 
   expect(pipeline).to.be.a.readableStream()
   expect(pipeline).to.not.be.a.writableStream()
 })
 
 it('writable + non readable', function () {
-  const pipeline = nicePipe(through(), writable())
+  var pipeline = nicePipe(through(), writable())
 
   expect(pipeline).to.not.be.a.readableStream()
   expect(pipeline).to.be.a.writableStream()
 })
 
 it('non writable + non readable', function () {
-  const pipeline = nicePipe(readable(), writable())
+  var pipeline = nicePipe(readable(), writable())
 
   expect(pipeline).to.not.be.a.readableStream()
   expect(pipeline).to.not.be.a.writableStream()
