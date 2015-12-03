@@ -2,6 +2,8 @@
 
 // ===================================================================
 
+var EventEmitter = require('events').EventEmitter
+
 var stream
 try {
   stream = require('readable-stream')
@@ -152,6 +154,8 @@ function nicePipe (streams) {
       objectMode: true
     })
     proxyRead(pipeline, current)
+  } else {
+    pipeline = new EventEmitter()
   }
 
   return pipeline
