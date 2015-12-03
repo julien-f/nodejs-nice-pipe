@@ -7,7 +7,19 @@
 var nicePipe = require('./')
 
 var expect = require('must')
+var isReadable = require('is-stream').readable
+var isWritable = require('is-stream').writable
 var Transform = require('stream').Transform
+
+// ===================================================================
+
+expect.prototype.readableStream = function () {
+  this.assert(isReadable(this.actual), 'be a readable stream')
+}
+
+expect.prototype.writableStream = function () {
+  this.assert(isWritable(this.actual), 'be a writable stream')
+}
 
 // ===================================================================
 
@@ -58,6 +70,8 @@ it('sets up a pipeline', function (done) {
     stream3
   ]
   var pipeline = nicePipe(streams)
+  expect(pipeline).to.be.a.readableStream()
+  expect(pipeline).to.be.a.writableStream()
 
   var value = {}
   pipeline.end(value)
