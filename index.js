@@ -163,11 +163,12 @@ function nicePipe (streams) {
 
 module.exports = function nicePipeWrapper (streams) {
   try {
-    return nicePipe(
-      isArray(streams)
-        ? streams
-        : (streams = [], arrayPush.apply(streams, arguments), streams)
-    )
+    if (!isArray(streams)) {
+      streams = []
+      arrayPush.apply(streams, arguments)
+    }
+
+    return nicePipe(streams)
   } finally {
     current = first = forwardError = undefined
   }
