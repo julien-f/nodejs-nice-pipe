@@ -15,8 +15,7 @@
     "is-stream": "^1.0.1"
   },
   "devDependencies": {
-    "mocha": "^3.1.2",
-    "must": "^0.13.1",
+    "jest": "^23.1.0",
     "standard": "^8.5.0"
   },
   "files": [
@@ -27,8 +26,8 @@
     "url": "https://github.com/julien-f/nodejs-nice-pipe"
   },
   "scripts": {
-    "dev-test": "mocha --watch --reporter=min index.spec.js",
+    "dev-test": "jest --watch index.spec.js",
     "posttest": "standard",
-    "test": "mocha index.spec.js"
+    "test": "jest index.spec.js"
   }
 }

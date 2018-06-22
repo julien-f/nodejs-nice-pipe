@@ -1,12 +1,11 @@
 'use strict'
 
-/* eslint-env mocha */
+/* eslint-env jest */
 
 // ===================================================================
 
 var nicePipe = require('./')
 
-var expect = require('must')
 var isReadable = require('is-stream').readable
 var isWritable = require('is-stream').writable
 var Readable = require('stream').Readable
@@ -15,13 +14,22 @@ var Writable = require('stream').Writable
 
 // ===================================================================
 
-expect.prototype.readableStream = function () {
-  this.assert(isReadable(this.actual), 'be a readable stream')
-}
-
-expect.prototype.writableStream = function () {
-  this.assert(isWritable(this.actual), 'be a writable stream')
-}
+expect.extend({
+  toBeReadableStream (actual) {
+    const pass = isReadable(actual)
+    return {
+      message: `expected ${actual}${pass ? ' not' : ''} to be a readable stream`,
+      pass
+    }
+  },
+  toBeWritableStream (actual) {
+    const pass = isWritable(actual)
+    return {
+      message: `expected ${actual}${pass ? ' not' : ''} to be a writable stream`,
+      pass
+    }
+  }
+})
 
 // ===================================================================
 
@@ -93,62 +101,62 @@ it('sets up a pipeline', function (done) {
     stream3
   ]
   var pipeline = nicePipe(streams)
-  expect(pipeline).to.be.a.readableStream()
-  expect(pipeline).to.be.a.writableStream()
+  expect(pipeline).toBeReadableStream()
+  expect(pipeline).toBeWritableStream()
 
   var value = {}
   pipeline.end(value)
 
   pipeline.on('data', function (data) {
-    expect(data).to.equal(value)
+    expect(data).toBe(value)
 
     // Test pipeline.
     streams.forEach(function (stream) {
-      expect(stream.chunks).to.eql([value])
+      expect(stream.chunks).toEqual([value])
     })
   })
 
   stream3.on('finish', function () {
     streams.forEach(function (stream) {
-      expect(stream.flushed).to.be.true()
+      expect(stream.flushed).toBe(true)
     })
 
     done()
   })
 })
 
-it('ignores falsy values')
+it.skip('ignores falsy values', function () {})
 
-it('forwards errors')
+it.skip('forwards errors', function () {})
 
-it('handles nested arrays')
+it.skip('handles nested arrays', function () {})
 
-it('supports flat parameters instead of an array')
+it.skip('supports flat parameters instead of an array', function () {})
 
 it('writable + readable', function () {
   var pipeline = nicePipe(through(), through())
 
-  expect(pipeline).to.be.a.readableStream()
-  expect(pipeline).to.be.a.writableStream()
+  expect(pipeline).toBeReadableStream()
+  expect(pipeline).toBeWritableStream()
 })
 
 it('non writable + readable', function () {
   var pipeline = nicePipe(readable(), through())
 
-  expect(pipeline).to.be.a.readableStream()
-  expect(pipeline).to.not.be.a.writableStream()
+  expect(pipeline).toBeReadableStream()
+  expect(pipeline).not.toBeWritableStream()
 })
 
 it('writable + non readable', function () {
   var pipeline = nicePipe(through(), writable())
 
-  expect(pipeline).to.not.be.a.readableStream()
-  expect(pipeline).to.be.a.writableStream()
+  expect(pipeline).not.toBeReadableStream()
+  expect(pipeline).toBeWritableStream()
 })
 
 it('non writable + non readable', function () {
   var pipeline = nicePipe(readable(), writable())
 
-  expect(pipeline).to.not.be.a.readableStream()
-  expect(pipeline).to.not.be.a.writableStream()
+  expect(pipeline).not.toBeReadableStream()
+  expect(pipeline).not.toBeWritableStream()
 })
