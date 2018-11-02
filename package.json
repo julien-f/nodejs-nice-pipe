@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "jest": "^23.1.0",
-    "standard": "^11.0.1"
+    "standard": "^12.0.1"
   },
   "files": [
     "index.js"
