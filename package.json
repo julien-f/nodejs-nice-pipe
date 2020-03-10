@@ -11,6 +11,9 @@
   "homepage": "https://github.com/julien-f/nodejs-nice-pipe",
   "bugs": "https://github.com/julien-f/nodejs-nice-pipe/issues",
   "author": "Julien Fontanet <julien.fontanet@isonoe.net>",
+  "engines": {
+    "node": ">=6"
+  },
   "dependencies": {
     "is-stream": "^1.0.1"
   },
