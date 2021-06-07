@@ -15,6 +15,7 @@ each stream or they will be thrown from the main loop.
 
 On possible work-around is to use a dedicated
 [domain](http://nodejs.org/api/domain.html) but:
+
 - you should not handle continue after an error as been thrown;
 - this API is not stable;
 - it is a bit cumbersome to set up.
@@ -50,28 +51,27 @@ npm install --save nice-pipe
 ## Usage
 
 ```javascript
-var nicePipe = require('nice-pipe')
+const nicePipe = require("nice-pipe");
 
-var parse = true
+const parse = true;
 
-var pipeline = nicePipe([
+const pipeline = nicePipe([
   process.stdin,
 
   // Falsy values are silently ignored.
-  parse && require('csv2json')(),
+  parse && require("csv2json")(),
 
-  process.stdout
+  process.stdout,
 ]);
 
-
-pipeline.on('error', function (error) {
-  console.error(error)
-})
+pipeline.on("error", function (error) {
+  console.error(error);
+});
 ```
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

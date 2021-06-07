@@ -1,162 +1,160 @@
-'use strict'
+"use strict";
 
 /* eslint-env jest */
 
 // ===================================================================
 
-var nicePipe = require('./')
+const nicePipe = require("./");
 
-var isReadable = require('is-stream').readable
-var isWritable = require('is-stream').writable
-var Readable = require('stream').Readable
-var Transform = require('stream').Transform
-var Writable = require('stream').Writable
+const isReadable = require("is-stream").readable;
+const isWritable = require("is-stream").writable;
+const Readable = require("stream").Readable;
+const Transform = require("stream").Transform;
+const Writable = require("stream").Writable;
 
 // ===================================================================
 
 expect.extend({
-  toBeReadableStream (actual) {
-    const pass = isReadable(actual)
+  toBeReadableStream(actual) {
+    const pass = isReadable(actual);
     return {
-      message: `expected ${actual}${pass ? ' not' : ''} to be a readable stream`,
-      pass
-    }
+      message: () =>
+        `expected ${actual}${pass ? " not" : ""} to be a readable stream`,
+      pass,
+    };
   },
-  toBeWritableStream (actual) {
-    const pass = isWritable(actual)
+  toBeWritableStream(actual) {
+    const pass = isWritable(actual);
     return {
-      message: `expected ${actual}${pass ? ' not' : ''} to be a writable stream`,
-      pass
-    }
-  }
-})
+      message: () =>
+        `expected ${actual}${pass ? " not" : ""} to be a writable stream`,
+      pass,
+    };
+  },
+});
 
 // ===================================================================
 
-function passthroughTransform (chunk, enc, next) {
-  next(null, chunk)
+function passthroughTransform(chunk, enc, next) {
+  next(null, chunk);
 }
 
-function through (transform, flush, opts) {
+function through(transform, flush, opts) {
   if (!opts) {
-    opts = {}
+    opts = {};
   }
-  opts.objectMode = true
+  opts.objectMode = true;
 
-  var stream = new Transform(opts)
-  stream._transform = transform || passthroughTransform
+  const stream = new Transform(opts);
+  stream._transform = transform || passthroughTransform;
   if (flush) {
-    stream._flush = flush
+    stream._flush = flush;
   }
 
-  return stream
+  return stream;
 }
 
-function readable () {
-  var stream = new Readable()
+function readable() {
+  const stream = new Readable();
   stream._read = function () {
-    this.push(null)
-  }
+    this.push(null);
+  };
 
-  return stream
+  return stream;
 }
 
-function writable () {
-  var stream = new Writable()
+function writable() {
+  const stream = new Writable();
   stream._write = function (chunk, enc, next) {
-    next()
-  }
-  return stream
+    next();
+  };
+  return stream;
 }
 
 // -------------------------------------------------------------------
 
-function spyTransform (chunk, enc, next) {
-  ;(this.chunks || (this.chunks = [])).push(chunk)
+function spyTransform(chunk, enc, next) {
+  (this.chunks || (this.chunks = [])).push(chunk);
 
-  next(null, chunk)
+  next(null, chunk);
 }
 
-function spyFlush (next) {
-  this.flushed = true
+function spyFlush(next) {
+  this.flushed = true;
 
-  next()
+  next();
 }
 
 // Create a passthrough stream which remember what passed through it.
-function makeSpyStream (opts) {
-  return through(spyTransform, spyFlush, opts)
+function makeSpyStream(opts) {
+  return through(spyTransform, spyFlush, opts);
 }
 
 // ===================================================================
 
-it('sets up a pipeline', function (done) {
-  var stream1 = makeSpyStream()
-  var stream2 = makeSpyStream()
-  var stream3 = makeSpyStream()
+it("sets up a pipeline", function (done) {
+  const stream1 = makeSpyStream();
+  const stream2 = makeSpyStream();
+  const stream3 = makeSpyStream();
 
-  var streams = [
-    stream1,
-    stream2,
-    stream3
-  ]
-  var pipeline = nicePipe(streams)
-  expect(pipeline).toBeReadableStream()
-  expect(pipeline).toBeWritableStream()
+  const streams = [stream1, stream2, stream3];
+  const pipeline = nicePipe(streams);
+  expect(pipeline).toBeReadableStream();
+  expect(pipeline).toBeWritableStream();
 
-  var value = {}
-  pipeline.end(value)
+  const value = {};
+  pipeline.end(value);
 
-  pipeline.on('data', function (data) {
-    expect(data).toBe(value)
+  pipeline.on("data", function (data) {
+    expect(data).toBe(value);
 
     // Test pipeline.
     streams.forEach(function (stream) {
-      expect(stream.chunks).toEqual([value])
-    })
-  })
+      expect(stream.chunks).toEqual([value]);
+    });
+  });
 
-  stream3.on('finish', function () {
+  stream3.on("finish", function () {
     streams.forEach(function (stream) {
-      expect(stream.flushed).toBe(true)
-    })
+      expect(stream.flushed).toBe(true);
+    });
 
-    done()
-  })
-})
+    done();
+  });
+});
 
-it.skip('ignores falsy values', function () {})
+it.skip("ignores falsy values", function () {});
 
-it.skip('forwards errors', function () {})
+it.skip("forwards errors", function () {});
 
-it.skip('handles nested arrays', function () {})
+it.skip("handles nested arrays", function () {});
 
-it.skip('supports flat parameters instead of an array', function () {})
+it.skip("supports flat parameters instead of an array", function () {});
 
-it('writable + readable', function () {
-  var pipeline = nicePipe(through(), through())
+it("writable + readable", function () {
+  const pipeline = nicePipe(through(), through());
 
-  expect(pipeline).toBeReadableStream()
-  expect(pipeline).toBeWritableStream()
-})
+  expect(pipeline).toBeReadableStream();
+  expect(pipeline).toBeWritableStream();
+});
 
-it('non writable + readable', function () {
-  var pipeline = nicePipe(readable(), through())
+it("non writable + readable", function () {
+  const pipeline = nicePipe(readable(), through());
 
-  expect(pipeline).toBeReadableStream()
-  expect(pipeline).not.toBeWritableStream()
-})
+  expect(pipeline).toBeReadableStream();
+  expect(pipeline).not.toBeWritableStream();
+});
 
-it('writable + non readable', function () {
-  var pipeline = nicePipe(through(), writable())
+it("writable + non readable", function () {
+  const pipeline = nicePipe(through(), writable());
 
-  expect(pipeline).not.toBeReadableStream()
-  expect(pipeline).toBeWritableStream()
-})
+  expect(pipeline).not.toBeReadableStream();
+  expect(pipeline).toBeWritableStream();
+});
 
-it('non writable + non readable', function () {
-  var pipeline = nicePipe(readable(), writable())
+it("non writable + non readable", function () {
+  const pipeline = nicePipe(readable(), writable());
 
-  expect(pipeline).not.toBeReadableStream()
-  expect(pipeline).not.toBeWritableStream()
-})
+  expect(pipeline).not.toBeReadableStream();
+  expect(pipeline).not.toBeWritableStream();
+});

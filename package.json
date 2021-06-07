@@ -18,19 +18,38 @@
     "is-stream": "^1.0.1"
   },
   "devDependencies": {
+    "eslint": "^7.28.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.0",
+    "husky": "^4.3.8",
     "jest": "^24.9.0",
-    "standard": "^12.0.1"
+    "lint-staged": "^11.0.0",
+    "prettier": "^2.3.1"
   },
-  "files": [
-    "index.js"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/julien-f/nodejs-nice-pipe"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "eslint --ignore-pattern '!*'",
+      "jest --findRelatedTests --passWithNoTests"
+    ]
+  },
   "scripts": {
     "dev-test": "jest --watch index.spec.js",
-    "posttest": "standard",
     "test": "jest index.spec.js"
   }
 }

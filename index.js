@@ -1,97 +1,100 @@
-'use strict'
+"use strict";
 
 // ===================================================================
 
-var EventEmitter = require('events').EventEmitter
+const EventEmitter = require("events").EventEmitter;
 
-var stream
+let stream;
 try {
-  stream = require('readable-stream')
+  // eslint-disable-next-line node/no-missing-require
+  stream = require("readable-stream");
 } catch (_) {
-  stream = require('stream')
+  stream = require("stream");
 }
 
-var Duplex = stream.Duplex
-var Readable = stream.Readable
-var Writable = stream.Writable
+const Duplex = stream.Duplex;
+const Readable = stream.Readable;
+const Writable = stream.Writable;
 
-var isReadable = require('is-stream').readable
-var isWritable = require('is-stream').writable
+const isReadable = require("is-stream").readable;
+const isWritable = require("is-stream").writable;
 
 // ===================================================================
 
-var arrayPush = Array.prototype.push
+const arrayPush = Array.prototype.push;
 
-function forEach (array, iterator) {
-  var i, n
+function forEach(array, iterator) {
+  let i, n;
 
   for (i = 0, n = array.length; i < n; ++i) {
-    iterator(array[i], i, array)
+    iterator(array[i], i, array);
   }
 }
 
-var isArray = Array.isArray || (function (toString) {
-  var tag = toString.call([])
-  return function isArray (obj) {
-    return toString.call(obj) === tag
-  }
-})(Object.prototype.toString)
+const isArray =
+  Array.isArray ||
+  (function (toString) {
+    const tag = toString.call([]);
+    return function isArray(obj) {
+      return toString.call(obj) === tag;
+    };
+  })(Object.prototype.toString);
 
 // -------------------------------------------------------------------
 
-function makeEventProxy (source, target) {
-  var emit = target.emit
+function makeEventProxy(source, target) {
+  const emit = target.emit;
 
   return function (eventName) {
     source.on(eventName, function () {
-      var args = [ eventName ]
-      arrayPush.apply(args, arguments)
+      const args = [eventName];
+      arrayPush.apply(args, arguments);
 
-      emit.apply(target, args)
-    })
-  }
+      emit.apply(target, args);
+    });
+  };
 }
 
-function proxyRead (proxy, readable) {
+function proxyRead(proxy, readable) {
   proxy._read = function () {
-    var data
+    let data;
     do {
-      data = readable.read()
-    } while (data !== null && proxy.push(data))
-  }
+      data = readable.read();
+    } while (data !== null && proxy.push(data));
+  };
 
-  readable.once('end', function () {
-    proxy.push(null)
-  })
+  readable.once("end", function () {
+    proxy.push(null);
+  });
 
-  var proxyEvent = makeEventProxy(readable, proxy)
-  proxyEvent('close')
-  proxyEvent('readable')
+  const proxyEvent = makeEventProxy(readable, proxy);
+  proxyEvent("close");
+  proxyEvent("readable");
 }
 
-function proxyWrite (proxy, writable) {
+function proxyWrite(proxy, writable) {
   proxy._write = function (chunk, encoding, callback) {
-    return writable.write(chunk, encoding, callback)
-  }
+    return writable.write(chunk, encoding, callback);
+  };
 
-  proxy.once('finish', function () {
-    writable.end()
-  })
-  writable.once('finish', function () {
-    proxy.end()
-  })
+  proxy.once("finish", function () {
+    writable.end();
+  });
+  writable.once("finish", function () {
+    proxy.end();
+  });
 
-  var proxyEvent = makeEventProxy(writable, proxy)
-  proxyEvent('drain')
+  const proxyEvent = makeEventProxy(writable, proxy);
+  proxyEvent("drain");
 }
 
 // ===================================================================
 
 // State is maintained with these global variables.
 // It is ok because the code is completely synchronous.
-var current
-var first
-var forwardError
+let current;
+let first;
+let forwardError;
 
 // TODO: implements unpipe on error fix.
 //
@@ -99,77 +102,77 @@ var forwardError
 // 1. remove default error handler
 // 2. repipe on error.
 
-function nicePipeCore (stream) {
+function nicePipeCore(stream) {
   // Ignore all falsy values (undefined, null, etc.).
   if (!stream) {
-    return
+    return;
   }
 
   if (isArray(stream)) {
-    forEach(stream, nicePipeCore)
-    return
+    forEach(stream, nicePipeCore);
+    return;
   }
 
-  stream.on('error', forwardError)
+  stream.on("error", forwardError);
 
   if (current) {
-    current = current.pipe(stream)
+    current = current.pipe(stream);
   } else {
-    first = current = stream
+    first = current = stream;
   }
 }
 
-function nicePipe (streams) {
-  var pipeline
+function nicePipe(streams) {
+  let pipeline;
 
   forwardError = function (error) {
-    pipeline.emit('error', error)
-  }
+    pipeline.emit("error", error);
+  };
 
-  nicePipeCore(streams)
+  nicePipeCore(streams);
 
   // Only one stream.
   if (current === first) {
     // Remove superfluous error forwarder.
-    current.removeListener('error', forwardError)
+    current.removeListener("error", forwardError);
 
-    return current
+    return current;
   }
 
   // Create the pipeline.
   if (isWritable(first)) {
     if (isReadable(current)) {
       pipeline = new Duplex({
-        objectMode: true
-      })
-      proxyRead(pipeline, current)
+        objectMode: true,
+      });
+      proxyRead(pipeline, current);
     } else {
       pipeline = new Writable({
-        objectMode: true
-      })
+        objectMode: true,
+      });
     }
-    proxyWrite(pipeline, first)
+    proxyWrite(pipeline, first);
   } else if (isReadable(current)) {
     pipeline = new Readable({
-      objectMode: true
-    })
-    proxyRead(pipeline, current)
+      objectMode: true,
+    });
+    proxyRead(pipeline, current);
   } else {
-    pipeline = new EventEmitter()
+    pipeline = new EventEmitter();
   }
 
-  return pipeline
+  return pipeline;
 }
 
-module.exports = function nicePipeWrapper (streams) {
+module.exports = function nicePipeWrapper(streams) {
   try {
     if (!isArray(streams)) {
-      streams = []
-      arrayPush.apply(streams, arguments)
+      streams = [];
+      arrayPush.apply(streams, arguments);
     }
 
-    return nicePipe(streams)
+    return nicePipe(streams);
   } finally {
-    current = first = forwardError = undefined
+    current = first = forwardError = undefined;
   }
-}
+};
